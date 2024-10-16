@@ -14,6 +14,9 @@ module med_phases_restart_mod
   use med_phases_prep_glc_mod , only : FBocnAccum2glc_o, ocnAccum2glc_cnt
   use med_phases_prep_rof_mod , only : FBlndAccum2rof_l, lndAccum2rof_cnt
   use pio                     , only : file_desc_t
+#ifndef CESMCOUPLED
+  use shr_is_restart_fh_mod, only : init_is_restart_fh, is_restart_fh, write_restartfh
+#endif
   implicit none
   private
 
@@ -114,6 +117,10 @@ contains
        write(logunit,'(a,l7)') trim(subname)//" write_restart_at_endofrun : ", write_restart_at_endofrun
        write(logunit,*)
     end if
+
+#ifndef CESMCOUPLED
+    call init_is_restart_fh(mcurrtime, timestep_length,maintask)
+#endif
 
   end subroutine med_phases_restart_alarm_init
 
@@ -243,6 +250,11 @@ contains
           AlarmIsOn = .false.
        endif
     endif
+
+#ifndef CESMCOUPLED
+    write_restartfh = is_restart_fh(clock)
+    if (write_restartfh) alarmIsOn = .true.
+#endif
 
     if (alarmIsOn) then
        call ESMF_ClockGet(clock, currtime=currtime, starttime=starttime, rc=rc)
