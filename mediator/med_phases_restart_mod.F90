@@ -15,7 +15,7 @@ module med_phases_restart_mod
   use med_phases_prep_rof_mod , only : FBlndAccum2rof_l, lndAccum2rof_cnt
   use pio                     , only : file_desc_t
 #ifndef CESMCOUPLED
-  use shr_is_restart_fh_mod, only : init_is_restart_fh, is_restart_fh, write_restartfh
+  use shr_is_restart_fh_mod, only : init_is_restart_fh, is_restart_fh, is_restart_fh_type
 #endif
   implicit none
   private
@@ -26,6 +26,9 @@ module med_phases_restart_mod
   private :: med_phases_restart_alarm_init
 
   logical :: write_restart_at_endofrun = .false.
+#ifndef CESMCOUPLED
+  type(is_restart_fh_type) :: restartfh_info ! For flexible restarts in UFS
+#endif
   logical :: whead(2) = (/.true. , .false./)
   logical :: wdata(2) = (/.false., .true. /)
 
@@ -119,7 +122,7 @@ contains
     end if
 
 #ifndef CESMCOUPLED
-    call init_is_restart_fh(mcurrtime, timestep_length,maintask)
+    call init_is_restart_fh(mcurrtime, timestep_length,maintask, restartfh_info)
 #endif
 
   end subroutine med_phases_restart_alarm_init
@@ -185,6 +188,7 @@ contains
     real(R8)                   :: tbnds(2)       ! CF1.0 time bounds
     logical                    :: isPresent
     logical                    :: first_time = .true.
+    logical                    :: write_restartfh
     character(len=*), parameter :: subname='(med_phases_restart_write)'
     !---------------------------------------
 
@@ -252,7 +256,7 @@ contains
     endif
 
 #ifndef CESMCOUPLED
-    write_restartfh = is_restart_fh(clock)
+    call is_restart_fh(clock, restartfh_info, write_restartfh)
     if (write_restartfh) alarmIsOn = .true.
 #endif
 
