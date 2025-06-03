@@ -126,7 +126,7 @@ contains
     end if
 
 #ifndef CESMCOUPLED
-    call init_is_restart_fh(mcurrtime, timestep_length,maintask, restartfh_info)
+    call init_is_restart_fh(mclock, maintask, restartfh_info)
 #endif
 
   end subroutine med_phases_restart_alarm_init
